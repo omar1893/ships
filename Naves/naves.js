@@ -2,6 +2,7 @@ var canvas = document.getElementById('micanvas');
 var ctx = canvas.getContext('2d');
 
 var teclado = {};
+var disparos = [];
 
 var fondo;
 
@@ -68,11 +69,51 @@ if(teclado[39]){
         }
     }
 
+    if(teclado[32]){
+        if(!teclado.fire){
+        fire();
+        teclado.fire = true;
+        }
+        
+    }
+    else teclado.fire = false;
+
+}
+
+function moveShooting(){
+    for(var i in disparos){
+        var disparo = disparos[i];
+        disparo.y -= 2;
+    }
+    disparos = disparos.filter(function(disparo){
+        return disparo.y > 0;
+    });
+}
+
+function fire(){
+    disparos.push({
+        x: nave.x + 20,
+        y: nave.y -10,
+        width: 10,
+        height: 30
+    })
+}
+
+function drawFire(){
+    ctx.save();
+    ctx.fillStyle = 'white';
+    for(var i in disparos){
+        var disparo = disparos[i];
+        ctx.fillRect(disparo.x, disparo.y, disparo.width, disparo.height);
+    }
+    ctx.restore();
 }
 
 function frameloop(){
     moveShip();
+    moveShooting();
     drawBackground();
+    drawFire();
     drawSpaceship();
 }
 
