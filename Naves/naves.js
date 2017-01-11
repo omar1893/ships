@@ -120,7 +120,20 @@ function updateEnemies(){
                 enemigo.contador++;
                 enemigo.x += Math.sin(enemigo.contador * Math.PI /150)*5;
             }
+            if(enemigo && enemigo.estado == "hit"){
+                enemigo.contador++;
+                if(enemigo.contador >= 20){
+                    enemigo.estado = 'muerto';
+                    enemigo.contador = 0;
+                }
+            }
+
         }
+
+        enemies = enemies.filter(function(enemigo){
+            if(enemigo && enemigo.estado != 'muerto') return true;
+            return false;
+        });
 }
 
 function moveShooting(){
@@ -153,11 +166,47 @@ function drawFire(){
     ctx.restore();
 }
 
+function hit(a,b){
+    var hit = false;
+
+    if(b.x + b.width >= a.x && b.x < a.x + a.width){
+        if(b.y + b.height >= a.y && b.y < a.y + a.height){
+            hit = true;
+        }
+    }
+    if(b.x <= a.x && b.x + b.width >= a.x + a.width){
+      if(b.y <= a.y && b.y + b.height >= a.y + a.height){
+          hit = true;
+      }  
+
+    }
+    if(a.x <= b.x && a.x + a.width >= b.x + b.width){
+        if(a.y <= b.y && a.y + a.height >= b.y + b.height){
+            hit = true;        }        
+    }
+
+    return hit;
+}
+
+function contact(){
+    for(var i in disparos){
+        var disparo = disparos[i];
+        for(j in enemies){
+            var enemigo = enemies[j];
+            if(hit(disparo, enemigo)){
+                enemigo.estado = 'hit';
+                enemigo.contador = 0;
+            }
+        }
+    }
+}
+
 function frameloop(){
     moveShip();
     updateEnemies();
     moveShooting();
     drawBackground();
+    contact();
     drawEnemies();
     drawFire();
     drawSpaceship();
