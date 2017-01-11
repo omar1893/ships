@@ -9,9 +9,15 @@ var fondo;
 var nave = {
     x:100,
     y:canvas.height - 100,
-    width: 50,
-    height: 50
+    width: 70,
+    height: 70
 }
+
+var enemies= [];
+
+var juego = {
+    estado: 'iniciando',
+};
 
 function loadMedia(){
     fondo = new Image();
@@ -21,14 +27,27 @@ function loadMedia(){
     }
 }
 
+function drawEnemies(){
+    alien = new Image();
+    alien.src = "img/aliensprite.png";
+    for(var i in enemies){
+        var enemigo = enemies[i];
+        ctx.save();
+        if(enemigo.estado == 'vivo') ctx.drawImage(alien, enemigo.x, enemigo.y,enemigo.height, enemigo.width);
+        if(enemigo.estado == 'muerto') ctx.fillStyle = 'black';
+        
+    }
+}
+
 function drawBackground(){
     ctx.drawImage(fondo,0,0);
 }
 
 function drawSpaceship(){
     ctx.save();
-    ctx.fillStyle = 'white';
-    ctx.fillRect(nave.x, nave.y, nave.width, nave.height);
+    ship = new Image();
+    ship.src = "img/blueship.png"
+    ctx.drawImage(ship, nave.x, nave.y, nave.width, nave.height);
     ctx.restore();
 }
 
@@ -80,6 +99,30 @@ if(teclado[39]){
 
 }
 
+function updateEnemies(){
+    if(juego.estado == 'iniciando'){
+        for(var i = 0; i < 10 ; i++){
+            enemies.push({
+                x:10 + (i*50),
+                y: 10,
+                height:40,
+                width: 40,
+                estado: 'vivo',
+                contador: 0
+            })
+        }
+        juego.estado = 'jugando';
+    }
+    for(var i in enemies){
+            var enemigo = enemies[i];
+            if(!enemigo) continue;
+            if(enemigo && enemigo.estado == 'vivo'){
+                enemigo.contador++;
+                enemigo.x += Math.sin(enemigo.contador * Math.PI /150)*5;
+            }
+        }
+}
+
 function moveShooting(){
     for(var i in disparos){
         var disparo = disparos[i];
@@ -92,7 +135,7 @@ function moveShooting(){
 
 function fire(){
     disparos.push({
-        x: nave.x + 20,
+        x: nave.x + 30,
         y: nave.y -10,
         width: 10,
         height: 30
@@ -101,18 +144,21 @@ function fire(){
 
 function drawFire(){
     ctx.save();
-    ctx.fillStyle = 'white';
+    beam = new Image();
+    beam.src = "img/beam.png";
     for(var i in disparos){
         var disparo = disparos[i];
-        ctx.fillRect(disparo.x, disparo.y, disparo.width, disparo.height);
+        ctx.drawImage(beam, disparo.x, disparo.y, disparo.width, disparo.height);
     }
     ctx.restore();
 }
 
 function frameloop(){
     moveShip();
+    updateEnemies();
     moveShooting();
     drawBackground();
+    drawEnemies();
     drawFire();
     drawSpaceship();
 }
