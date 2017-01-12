@@ -12,7 +12,7 @@ var nave = {
     y:canvas.height - 100,
     width: 70,
     height: 70,
-    contacto: 0
+    contador: 0
 }
 
 var textoRespuesta = {
@@ -104,16 +104,17 @@ if(teclado[39]){
         
     }
     else teclado.fire = false;
-    if(nave.estado =='hit'){
+    if(nave.estado == 'hit'){
         nave.contador++;
             if(nave.contador >= 20){
+                console.log("Perdiste")
                 nave.contador = 0;
                 nave.estado = 'muerto';
                 juego.estado = 'perdido';
                 textoRespuesta.title = 'Game Over';
                 textoRespuesta.subtitle = "Presiona la tecla R para continuar";
-                textoRespuesta.contador = 0;
-
+                textoRespuesta.counter = 0;
+                drawText();
             }
         }
     }
@@ -230,8 +231,8 @@ function drawFire(){
 }
 
 function drawText(){
-    if(textoRespuesta.contador == -1)return;
-    var alpha = textoRespuesta.contador/50.0;
+    if(textoRespuesta.counter == -1)return;
+    var alpha = textoRespuesta.counter/50.0;
     if(alpha>1){
         for(var i in enemies){
             delete enemies[i];
@@ -239,17 +240,20 @@ function drawText(){
     }
     ctx.save();
     ctx.globalAlpha = alpha;
+
     if(juego.estado == 'perdido'){
+        console.log('Juego perdido')
         ctx.fillStyle = 'white';
         ctx.font = 'Bold 40pt Arial';
-        ctx.fillText(textoRespuesta.titulo, 140, 200);
+        ctx.fillText(textoRespuesta.title, 140, 200);
         ctx.font = '14pt Arial';
         ctx.fillText(textoRespuesta.subtitle, 190, 250);
     }
         if(juego.estado == 'victoria'){
+        console.log('Juego Ganado')    
         ctx.fillStyle = 'white';
         ctx.font = 'Bold 40pt Arial';
-        ctx.fillText(textoRespuesta.titulo, 140, 200);
+        ctx.fillText(textoRespuesta.title, 140, 200);
         ctx.font = '14pt Arial';
         ctx.fillText(textoRespuesta.subtitle, 190, 250);
     }
@@ -258,14 +262,20 @@ function drawText(){
 function updateGame(){
     if(juego.estado == 'jugando' && enemies.length == 0){
         juego.estado = 'victoria';
-        textoRespuesta.titulo = 'Derrotaste a los enemigos';
+        textoRespuesta.title = 'Derrotaste a los enemigos';
         textoRespuesta.subtitle = 'Presiona la tecla R para reiniciar';
         textoRespuesta.counter = 0;
     }
 
-    if(textoRespuesta.contador >=0){
-        textoRespuesta.contador++;
+    if(textoRespuesta.counter >=0){
+        textoRespuesta.counter++;
     }
+
+if((juego.estado == 'perdido' || juego.estado == 'victoria') && teclado[82]){
+   juego.estado = 'iniciando';
+   nave.estado = 'vivo';
+   textoRespuesta.counter = -1; 
+}
 
 }
 
@@ -316,11 +326,11 @@ function contact(){
 function frameloop(){
     updateGame()
     moveShip();
-    updateEnemies();
     moveShooting();
     moveEnemiesShooting();
     drawBackground();
     contact();
+    updateEnemies();
     drawEnemies();
     dibujarDisparosEnemigos();
     drawFire();
