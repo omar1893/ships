@@ -11,7 +11,8 @@ var nave = {
     x:100,
     y:canvas.height - 100,
     width: 70,
-    height: 70
+    height: 70,
+    contacto: 0
 }
 
 var textoRespuesta = {
@@ -103,8 +104,20 @@ if(teclado[39]){
         
     }
     else teclado.fire = false;
+    if(nave.estado =='hit'){
+        nave.contador++;
+            if(nave.contador >= 20){
+                nave.contador = 0;
+                nave.estado = 'muerto';
+                juego.estado = 'perdido';
+                textoRespuesta.title = 'Game Over';
+                textoRespuesta.subtitle = "Presiona la tecla R para continuar";
+                textoRespuesta.contador = 0;
 
-}
+            }
+        }
+    }
+
 
 function dibujarDisparosEnemigos(){
     for(var i in disparosEnemigos){
