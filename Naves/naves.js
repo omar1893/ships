@@ -3,6 +3,7 @@ var ctx = canvas.getContext('2d');
 
 var teclado = {};
 var disparos = [];
+var disparosEnemigos = [];
 
 var fondo;
 
@@ -13,7 +14,13 @@ var nave = {
     height: 70
 }
 
-var enemies= [];
+var textoRespuesta = {
+    counter: -1,
+    title: '',
+    subtitle: ''
+}
+
+var enemies = [];
 
 var juego = {
     estado: 'iniciando',
@@ -99,7 +106,37 @@ if(teclado[39]){
 
 }
 
+function dibujarDisparosEnemigos(){
+    for(var i in disparosEnemigos){
+        var disparo = disparosEnemigos[i];
+        ctx.save();
+        ctx.fillStyle = 'yellow';
+        ctx.restore();
+        ctx.fillRect(disparo.x, disparo.y, disparo.width, disparo.height);
+    }
+}
+
+function moveEnemiesShooting() {
+    for(var i in disparosEnemigos){
+        var disparo = disparosEnemigos[i];
+        disparo.y += 3;
+    }
+    disparosEnemigos = disparosEnemigos.filter(function(disparo){
+        return disparo.y < canvas.height;
+    })
+}
+
 function updateEnemies(){
+    function agregarDisparosEnemigos(enemigo){
+       return{
+        x: enemigo.x,
+        y: enemigo.y,
+        width: 10,
+        height: 33,
+        contador: 0
+        }
+    }
+
     if(juego.estado == 'iniciando'){
         for(var i = 0; i < 10 ; i++){
             enemies.push({
@@ -119,7 +156,13 @@ function updateEnemies(){
             if(enemigo && enemigo.estado == 'vivo'){
                 enemigo.contador++;
                 enemigo.x += Math.sin(enemigo.contador * Math.PI /150)*5;
-            }
+                if(aleatorio(0, enemies.length * 10) == 4 ){
+
+                    disparosEnemigos.push(agregarDisparosEnemigos(enemigo));
+
+                }
+        
+    }
             if(enemigo && enemigo.estado == "hit"){
                 enemigo.contador++;
                 if(enemigo.contador >= 20){
@@ -146,6 +189,13 @@ function moveShooting(){
     });
 }
 
+function aleatorio(inferior, superior){
+    var posibilidades = superior - inferior;
+    var a = Math.random() * posibilidades;
+    a = Math.floor(a);
+    return parseInt(inferior) + a;
+}
+
 function fire(){
     disparos.push({
         x: nave.x + 30,
@@ -164,6 +214,46 @@ function drawFire(){
         ctx.drawImage(beam, disparo.x, disparo.y, disparo.width, disparo.height);
     }
     ctx.restore();
+}
+
+function drawText(){
+    if(textoRespuesta.contador == -1)return;
+    var alpha = textoRespuesta.contador/50.0;
+    if(alpha>1){
+        for(var i in enemies){
+            delete enemies[i];
+        }
+    }
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    if(juego.estado == 'perdido'){
+        ctx.fillStyle = 'white';
+        ctx.font = 'Bold 40pt Arial';
+        ctx.fillText(textoRespuesta.titulo, 140, 200);
+        ctx.font = '14pt Arial';
+        ctx.fillText(textoRespuesta.subtitle, 190, 250);
+    }
+        if(juego.estado == 'victoria'){
+        ctx.fillStyle = 'white';
+        ctx.font = 'Bold 40pt Arial';
+        ctx.fillText(textoRespuesta.titulo, 140, 200);
+        ctx.font = '14pt Arial';
+        ctx.fillText(textoRespuesta.subtitle, 190, 250);
+    }
+}
+
+function updateGame(){
+    if(juego.estado == 'jugando' && enemies.length == 0){
+        juego.estado = 'victoria';
+        textoRespuesta.titulo = 'Derrotaste a los enemigos';
+        textoRespuesta.subtitle = 'Presiona la tecla R para reiniciar';
+        textoRespuesta.counter = 0;
+    }
+
+    if(textoRespuesta.contador >=0){
+        textoRespuesta.contador++;
+    }
+
 }
 
 function hit(a,b){
@@ -199,16 +289,29 @@ function contact(){
             }
         }
     }
+
+    if(nave.estado == 'hit' || nave.estado == 'muerto') return;
+    for(var i in disparosEnemigos){
+        var disparo = disparosEnemigos[i];
+        if(hit(disparo, nave)){
+            nave.estado = 'hit';
+            console.log("contacto")
+        }
+    }
 }
 
 function frameloop(){
+    updateGame()
     moveShip();
     updateEnemies();
     moveShooting();
+    moveEnemiesShooting();
     drawBackground();
     contact();
     drawEnemies();
+    dibujarDisparosEnemigos();
     drawFire();
+    drawText();
     drawSpaceship();
 }
 
